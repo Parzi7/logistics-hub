@@ -58,12 +58,12 @@ export default function CargoTable({
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-4 sm:p-6">
+    <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 p-3.5 sm:p-6">
       {/* Заголовок + Кнопка Додати */}
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
-          <span className="bg-amber-100 p-2 rounded-xl text-amber-600">
-            <Package size={22} />
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2.5 sm:gap-3">
+          <span className="bg-amber-100 p-1.5 sm:p-2 rounded-xl text-amber-600">
+            <Package size={20} className="sm:w-[22px] sm:h-[22px]" />
           </span>
           {isArchiveView ? 'Архів вантажів' : 'Активні вантажі'}
         </h3>
@@ -71,15 +71,16 @@ export default function CargoTable({
         {!isArchiveView && onAdd && (
           <button 
             onClick={onAdd} 
-            className="bg-[#0f172a] hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
+            className="bg-[#0f172a] hover:bg-black active:scale-95 text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 shadow-sm transition-all"
           >
-            <Plus size={18} /> Додати
+            <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span>Додати</span>
           </button>
         )}
       </div>
 
-      {/* Потрійний фільтр */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      {/* Потрійний фільтр (вертикальний стек на мобільці) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 mb-5 sm:mb-6">
         {/* Список для автодоповнення */}
         <datalist id="countries-list-cargo">
           {COUNTRIES.map(c => <option key={c} value={c} />)}
@@ -92,7 +93,7 @@ export default function CargoTable({
             placeholder="Пошук (місто, вантаж...)"
             value={searchGeneral}
             onChange={(e) => setSearchGeneral(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-[15px] sm:text-xs font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all placeholder:text-slate-400"
           />
         </div>
 
@@ -104,7 +105,7 @@ export default function CargoTable({
             placeholder="Звідки (Країна)"
             value={searchFrom}
             onChange={(e) => setSearchFrom(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-[15px] sm:text-xs font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all placeholder:text-slate-400"
           />
         </div>
 
@@ -116,7 +117,7 @@ export default function CargoTable({
             placeholder="Куди (Країна)"
             value={searchTo}
             onChange={(e) => setSearchTo(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-[15px] sm:text-xs font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all placeholder:text-slate-400"
           />
         </div>
       </div>
@@ -232,13 +233,13 @@ export default function CargoTable({
             <div 
               key={item.id} 
               onClick={() => openDetails && openDetails(item, 'cargo')}
-              className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm hover:border-slate-200 transition-all cursor-pointer space-y-3"
+              className="bg-white rounded-2xl border border-slate-100 p-3.5 shadow-sm active:bg-slate-50 transition-all cursor-pointer space-y-3 relative overflow-hidden"
             >
               {/* Маршрут та Пропозиція */}
               <div className="flex justify-between items-start gap-2 border-b border-slate-100/80 pb-2.5">
-                <div className="flex items-center gap-1.5 flex-wrap text-sm">
+                <div className="flex items-center gap-1.5 flex-wrap text-sm leading-snug">
                   {formatLocation(item.route?.from || item.location?.from)}
-                  <span className="text-slate-300 font-bold">→</span>
+                  <span className="text-slate-300 font-bold mx-0.5">→</span>
                   {formatLocation(item.route?.to || item.location?.to)}
                 </div>
                 {item.price && (
@@ -267,7 +268,7 @@ export default function CargoTable({
                 </div>
               </div>
 
-              {/* Час створення та Кнопки дій */}
+              {/* Час створення та Збільшені кнопки дій під палець */}
               <div className="flex justify-between items-center border-t border-slate-100/80 pt-2.5 mt-1">
                 <div className="text-[10px] text-slate-400 flex items-center gap-1 font-mono">
                   <Clock size={11} />
@@ -279,27 +280,27 @@ export default function CargoTable({
                     <button 
                       onClick={(e) => onEdit(item, 'cargo', e)} 
                       title="Редагувати" 
-                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      className="p-2 text-slate-400 active:text-blue-600 active:bg-blue-50 rounded-xl transition-all active:scale-95"
                     >
-                      <Edit2 size={16} />
+                      <Edit2 size={17} />
                     </button>
                   )}
                   {handleArchive && (
                     <button 
                       onClick={(e) => handleArchive(item.id, 'cargo', e)} 
                       title={isArchiveView ? "Відновити" : "В архів"} 
-                      className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                      className="p-2 text-slate-400 active:text-amber-600 active:bg-amber-50 rounded-xl transition-all active:scale-95"
                     >
-                      {isArchiveView ? <RotateCcw size={16} /> : <Archive size={16} />}
+                      {isArchiveView ? <RotateCcw size={17} /> : <Archive size={17} />}
                     </button>
                   )}
                   {handleDelete && (
                     <button 
                       onClick={(e) => handleDelete(item.id, 'cargo', e)} 
                       title="Видалити" 
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                      className="p-2 text-slate-400 active:text-rose-600 active:bg-rose-50 rounded-xl transition-all active:scale-95"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={17} />
                     </button>
                   )}
                 </div>
