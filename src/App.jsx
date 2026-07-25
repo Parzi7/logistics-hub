@@ -19,6 +19,9 @@ export default function App() {
   const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Стан для відкриття мобільного бокового меню
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   const [cargos, setCargos] = useState([]);
   const [transports, setTransports] = useState([]);
   const [archivedCargos, setArchivedCargos] = useState([]);
@@ -128,7 +131,6 @@ export default function App() {
     const dbPayload = formatToDB(newItemData, targetType, isArchiveView);
 
     if (isEditing) {
-      // Оновлення в Supabase
       const { error } = await supabase
         .from('logistics')
         .update(dbPayload)
@@ -140,7 +142,6 @@ export default function App() {
         return;
       }
     } else {
-      // Вставка нового запису в Supabase
       const { data, error } = await supabase
         .from('logistics')
         .insert([dbPayload])
@@ -157,13 +158,12 @@ export default function App() {
       }
     }
 
-    // Оновлення стану React
     await fetchAllData();
     setIsAddModalOpen(false);
     setEditingItem(null);
   };
 
-  // --- 3. АРХІВУВАНИЙ / РОЗАРХІВУВАННЯ У БД ---
+  // --- 3. АРХІВУВАННЯ / РОЗАРХІВУВАННЯ У БД ---
   const handleArchive = async (id, type, e) => {
     if (e && e.stopPropagation) e.stopPropagation();
 
@@ -234,18 +234,29 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-100 font-sans text-slate-800">
+    // Фікс 1: flex-col для мобільних, flex-row для десктопів (md)
+    <div className="relative flex flex-col md:flex-row min-h-screen bg-slate-100 font-sans text-slate-800">
+      
+      {/* Бокове меню з підтримкою мобільного стану */}
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         isArchiveView={isArchiveView}
         setIsArchiveView={setIsArchiveView}
+        isMobileOpen={isMobileSidebarOpen}
+        setIsMobileOpen={setIsMobileSidebarOpen}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header globalSearch={globalSearch} setGlobalSearch={setGlobalSearch} />
+        {/* Шапка з кнопкою відкриття меню на мобілці */}
+        <Header 
+          globalSearch={globalSearch} 
+          setGlobalSearch={setGlobalSearch} 
+          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+        />
 
-        <main className="flex-1 p-8 overflow-y-auto">
+        {/* Фікс 2: Адаптивні відступи (p-3 sm:p-6 md:p-8) замість фіксованого p-8 */}
+        <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-y-auto">
           <SubTabNavigation 
             activeTab={activeTab}
             setActiveTab={setActiveTab}

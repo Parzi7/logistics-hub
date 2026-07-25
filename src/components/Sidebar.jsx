@@ -1,60 +1,45 @@
-import React, { useState } from 'react';
-import { Truck, Archive, BarChart2, Layers, Menu, X, Sparkles } from 'lucide-react';
+import React from 'react';
+import { Truck, Archive, BarChart2, Layers, X, Sparkles } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, isArchiveView, setIsArchiveView }) {
-  // Локальний стан для відкриття/закриття меню на мобільних пристроях
-  const [isOpenMobile, setIsOpenMobile] = useState(false);
-
+export default function Sidebar({ 
+  activeTab, 
+  setActiveTab, 
+  isArchiveView, 
+  setIsArchiveView,
+  isMobileOpen,
+  setIsMobileOpen 
+}) {
   const handleNavClick = (isArchive) => {
     if (setIsArchiveView) {
       setIsArchiveView(isArchive);
     }
-    // Автоматично закриваємо мобільне меню після вибору пункту
-    setIsOpenMobile(false);
+    // Закриваємо мобільне меню після кліку
+    if (setIsMobileOpen) {
+      setIsMobileOpen(false);
+    }
   };
 
   return (
     <>
-      {/* ================= 1. МОБІЛЬНА ШАПКА (показується тільки на md:hidden) ================= */}
-      <div className="md:hidden flex items-center justify-between bg-[#0f172a] border-b border-slate-800 px-4 py-3 sticky top-0 z-40 shadow-md">
-        <div className="flex items-center gap-2.5">
-          <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-md shadow-indigo-500/20">
-            <Truck size={18} />
-          </div>
-          <div>
-            <h1 className="font-bold text-white text-sm tracking-wide leading-none">Logistics Hub</h1>
-            <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">Pro Edition</span>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setIsOpenMobile(!isOpenMobile)}
-          className="p-2 text-slate-300 hover:text-white hover:bg-slate-800/80 active:bg-slate-800 rounded-xl transition-all"
-          aria-label="Toggle Menu"
-        >
-          {isOpenMobile ? <X size={22} /> : <Menu size={22} />}
-        </button>
-      </div>
-
-      {/* ================= 2. ОВЕРЛЕЙ / ЗАТЕМНЕННЯ ФОНУ (для мобільного) ================= */}
-      {isOpenMobile && (
+      {/* ================= 1. ЗАТЕМНЕННЯ ФОНУ (Overlay) ================= */}
+      {isMobileOpen && (
         <div 
-          onClick={() => setIsOpenMobile(false)}
+          onClick={() => setIsMobileOpen(false)}
           className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
         />
       )}
 
-      {/* ================= 3. ОСНОВНИЙ САЙДБАР (Адаптивний) ================= */}
+      {/* ================= 2. ОСНОВНИЙ САЙДБАР (Drawer) ================= */}
       <aside 
         className={`
           fixed md:static top-0 left-0 z-50 h-full md:min-h-screen w-72 md:w-64 
-          bg-[#0f172a] text-slate-300 flex flex-col justify-between p-5 
+          bg-[#0f172a] text-slate-300 flex flex-col justify-between p-5 overflow-y-auto
           transition-transform duration-300 ease-in-out border-r border-slate-800/60
-          ${isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         <div>
-          {/* Логотип та шапка сайдбару */}
+          {/* Шапка сайдбару з кнопкою закриття */}
           <div className="flex items-center justify-between px-2 py-2 mb-6 sm:mb-8">
             <div className="flex items-center gap-3">
               <div className="bg-indigo-600 p-2.5 rounded-2xl text-white shadow-lg shadow-indigo-500/30">
@@ -66,16 +51,16 @@ export default function Sidebar({ activeTab, setActiveTab, isArchiveView, setIsA
               </div>
             </div>
 
-            {/* Кнопка закриття всередині сайдбару (тільки мобілка) */}
+            {/* Хрестик закриття на мобільці */}
             <button 
-              onClick={() => setIsOpenMobile(false)}
+              onClick={() => setIsMobileOpen(false)}
               className="md:hidden text-slate-400 hover:text-white p-1 rounded-lg"
             >
               <X size={20} />
             </button>
           </div>
 
-          {/* Меню навігації */}
+          {/* Навігаційне меню */}
           <div className="space-y-1.5">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-2 block">
               Навігація
