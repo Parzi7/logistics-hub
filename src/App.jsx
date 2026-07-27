@@ -78,7 +78,7 @@ export default function App() {
       contact: item.contact || '',
       phone: item.phone || '',
       
-      // Відправляємо в БД під колонкою additional (або notes, залежно від Supabase)
+      // Відправляємо в БД під колонкою additional
       additional: extraInfo,
       is_archived: isArchived
     };
@@ -301,7 +301,7 @@ export default function App() {
               handleArchive={handleArchive}
               handleDelete={handleDelete}
               onEdit={handleOpenEditModal}
-              onAdd={handleAddModal}
+              onAdd={handleOpenAddModal}
               isArchiveView={isArchiveView}
             />
           )}
