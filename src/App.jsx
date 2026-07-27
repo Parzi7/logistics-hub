@@ -28,44 +28,61 @@ export default function App() {
   const [archivedTransports, setArchivedTransports] = useState([]);
 
   // --- ХЕЛПЕРИ ДЛЯ КОНВЕРТАЦІЇ ДАНИХ (БД <-> ФРОНТЕНД) ---
-  const formatFromDB = (row) => ({
-    id: row.id,
-    type: row.type,
-    route: { from: row.from_location || '—', to: row.to_location || '—' },
-    location: { from: row.from_location || '—', to: row.to_location || '—' },
-    cargo: row.cargo || '',
-    vehicle: row.vehicle || '',
-    weight: row.weight || '',
-    volume: row.volume || '',
-    dates: row.dates || '',
-    date: row.dates || '',
-    price: row.price || '',
-    company: row.company || '',
-    contact: row.contact || '',
-    phone: row.phone || '',
-    additional: row.additional || '',
-    notes: row.additional || '',
-    is_archived: row.is_archived || false,
-    created_at: row.created_at,
-    timeAdded: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  });
+  const formatFromDB = (row) => {
+    // Збираємо додатковий текст з будь-якої можливої колонки в Supabase
+    const extraInfo = row.additional || row.notes || row.description || row.details || row.comment || '';
 
-  const formatToDB = (item, type, isArchived = false) => ({
-    type: type || item.type || 'cargo',
-    from_location: item.route?.from || item.location?.from || '',
-    to_location: item.route?.to || item.location?.to || '',
-    cargo: item.cargo || '',
-    vehicle: item.vehicle || '',
-    weight: item.weight || '',
-    volume: item.volume || '',
-    dates: item.dates || item.date || '',
-    price: item.price || '',
-    company: item.company || '',
-    contact: item.contact || '',
-    phone: item.phone || '',
-    additional: item.additional || item.notes || item.details || '',
-    is_archived: isArchived
-  });
+    return {
+      id: row.id,
+      type: row.type,
+      route: { from: row.from_location || '—', to: row.to_location || '—' },
+      location: { from: row.from_location || '—', to: row.to_location || '—' },
+      cargo: row.cargo || '',
+      vehicle: row.vehicle || '',
+      weight: row.weight || '',
+      volume: row.volume || '',
+      dates: row.dates || '',
+      date: row.dates || '',
+      price: row.price || '',
+      company: row.company || '',
+      contact: row.contact || '',
+      phone: row.phone || '',
+
+      // Дублюємо в усі популярні ключі, щоб модалки та компоненти гарантовано бачили текст
+      additional: extraInfo,
+      notes: extraInfo,
+      description: extraInfo,
+      details: extraInfo,
+
+      is_archived: row.is_archived || false,
+      created_at: row.created_at,
+      timeAdded: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+  };
+
+  const formatToDB = (item, type, isArchived = false) => {
+    // Шукаємо текст примітки в усіх можливих ключах об'єкта item
+    const extraInfo = item.additional || item.notes || item.description || item.details || item.comment || '';
+
+    return {
+      type: type || item.type || 'cargo',
+      from_location: item.route?.from || item.location?.from || '',
+      to_location: item.route?.to || item.location?.to || '',
+      cargo: item.cargo || '',
+      vehicle: item.vehicle || '',
+      weight: item.weight || '',
+      volume: item.volume || '',
+      dates: item.dates || item.date || '',
+      price: item.price || '',
+      company: item.company || '',
+      contact: item.contact || '',
+      phone: item.phone || '',
+      
+      // Відправляємо в БД під колонкою additional (або notes, залежно від Supabase)
+      additional: extraInfo,
+      is_archived: isArchived
+    };
+  };
 
   // --- 1. ЗАВАНТАЖЕННЯ ДАНИХ З SUPABASE ПРИ СТАРТІ ---
   const fetchAllData = async () => {
@@ -101,7 +118,8 @@ export default function App() {
       const to = (item.route?.to || item.location?.to || '').toLowerCase();
       const title = (item.cargo || item.vehicle || '').toLowerCase();
       const price = (item.price || '').toLowerCase();
-      return from.includes(q) || to.includes(q) || title.includes(q) || price.includes(q);
+      const extra = (item.additional || item.notes || '').toLowerCase();
+      return from.includes(q) || to.includes(q) || title.includes(q) || price.includes(q) || extra.includes(q);
     });
   };
 
@@ -234,10 +252,9 @@ export default function App() {
   };
 
   return (
-    // Фікс 1: flex-col для мобільних, flex-row для десктопів (md)
     <div className="relative flex flex-col md:flex-row min-h-screen bg-slate-100 font-sans text-slate-800">
       
-      {/* Бокове меню з підтримкою мобільного стану */}
+      {/* Бокове меню */}
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -248,14 +265,14 @@ export default function App() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Шапка з кнопкою відкриття меню на мобілці */}
+        {/* Шапка */}
         <Header 
           globalSearch={globalSearch} 
           setGlobalSearch={setGlobalSearch} 
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
         />
 
-        {/* Фікс 2: Адаптивні відступи (p-3 sm:p-6 md:p-8) замість фіксованого p-8 */}
+        {/* Контент */}
         <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-y-auto">
           <SubTabNavigation 
             activeTab={activeTab}
@@ -284,7 +301,7 @@ export default function App() {
               handleArchive={handleArchive}
               handleDelete={handleDelete}
               onEdit={handleOpenEditModal}
-              onAdd={handleOpenAddModal}
+              onAdd={handleAddModal}
               isArchiveView={isArchiveView}
             />
           )}
@@ -312,7 +329,7 @@ export default function App() {
         />
       )}
 
-      {/* Плаваюча кнопка бота з підключеною хмарною базою */}
+      {/* ШІ Бот */}
       <AIBotButton onAddParsedData={handleAddParsedData} />
 
     </div>
