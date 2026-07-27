@@ -99,8 +99,9 @@ export default function AddItemModal({ isOpen, onClose, onSave, initialData, typ
     onSave(newItem);
   };
 
-  // Базові класи для всіх полів введення
-  const inputClasses = "w-full px-3.5 py-2.5 bg-slate-50/80 border border-slate-200/90 rounded-xl text-[15px] sm:text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all shadow-sm";
+  // Базові класи для всіх полів введення (без примусового w-full)
+  const baseInputClasses = "px-3.5 py-2.5 bg-slate-50/80 border border-slate-200/90 rounded-xl text-[15px] sm:text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all shadow-sm";
+  const inputClasses = `${baseInputClasses} w-full`;
 
   return (
     <div 
@@ -117,7 +118,7 @@ export default function AddItemModal({ isOpen, onClose, onSave, initialData, typ
           {COUNTRIES.map(c => <option key={c} value={c} />)}
         </datalist>
 
-        {/* 1. ШАПКА МОДАЛКИ (Фіксована) */}
+        {/* 1. ШАПКА МОДАЛКИ */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-white shrink-0">
           <div className="flex items-center gap-2.5">
             <div className={`p-2 rounded-xl ${isCargo ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
@@ -137,7 +138,7 @@ export default function AddItemModal({ isOpen, onClose, onSave, initialData, typ
           </button>
         </div>
 
-        {/* 2. ТІЛО ФОРМИ (Зі скролом) */}
+        {/* 2. ТІЛО ФОРМИ */}
         <form id="add-item-form" onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto space-y-4">
           {isCargo ? (
             /* ================= ФОРМА ВАНТАЖУ ================= */
@@ -230,12 +231,12 @@ export default function AddItemModal({ isOpen, onClose, onSave, initialData, typ
                     <input 
                       type="text" 
                       placeholder="Напр: 1500" 
-                      className={`${inputClasses} w-full`} 
+                      className={`${baseInputClasses} flex-1 min-w-0`} 
                       value={formData.price} 
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })} 
                     />
                     <select 
-                      className={`${inputClasses} w-24 shrink-0 appearance-none cursor-pointer px-2 text-center`} 
+                      className={`${baseInputClasses} w-28 shrink-0 appearance-none cursor-pointer px-2 text-center`} 
                       value={formData.currency} 
                       onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                     >
@@ -377,12 +378,12 @@ export default function AddItemModal({ isOpen, onClose, onSave, initialData, typ
                     <input 
                       type="text" 
                       placeholder="Напр: 1500" 
-                      className={`${inputClasses} w-full`} 
+                      className={`${baseInputClasses} flex-1 min-w-0`} 
                       value={formData.price} 
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })} 
                     />
                     <select 
-                      className={`${inputClasses} w-24 shrink-0 appearance-none cursor-pointer px-2 text-center`} 
+                      className={`${baseInputClasses} w-28 shrink-0 appearance-none cursor-pointer px-2 text-center`} 
                       value={formData.currency} 
                       onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                     >
@@ -431,7 +432,7 @@ export default function AddItemModal({ isOpen, onClose, onSave, initialData, typ
           )}
         </form>
 
-        {/* 3. ФУТЕР МОДАЛКИ (Фіксований знизу) */}
+        {/* 3. ФУТЕР МОДАЛКИ */}
         <div className="flex items-center justify-end gap-2.5 px-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 shrink-0">
           <button 
             type="button" 
