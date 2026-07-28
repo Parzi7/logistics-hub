@@ -9,6 +9,9 @@ import Sidebar from './components/Sidebar';
 import SubTabNavigation from './components/SubTabNavigation';
 import AIBotButton from './components/AIBotButton';
 
+// Імпортуємо парсер для точного розбору міст та країн
+import { extractCountryCity } from './components/addItemHelpers';
+
 export default function App() {
   const [selectedDetails, setSelectedDetails] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -29,14 +32,32 @@ export default function App() {
 
   // --- ХЕЛПЕРИ ДЛЯ КОНВЕРТАЦІЇ ДАНИХ (БД <-> ФРОНТЕНД) ---
   const formatFromDB = (row) => {
-    // Збираємо додатковий текст з будь-якої можливої колонки в Supabase
     const extraInfo = row.additional || row.notes || row.description || row.details || row.comment || '';
+
+    // Заранее розбираємо країни та міста для 100% точності
+    const fromParsed = extractCountryCity({ from_location: row.from_location }, true);
+    const toParsed = extractCountryCity({ to_location: row.to_location }, false);
+
+    const rawFrom = row.from_location || '';
+    const rawTo = row.to_location || '';
 
     return {
       id: row.id,
       type: row.type,
-      route: { from: row.from_location || '—', to: row.to_location || '—' },
-      location: { from: row.from_location || '—', to: row.to_location || '—' },
+      
+      // Сирі значення без примусового тире '—' (щоб не псувати редагування)
+      from_location: rawFrom,
+      to_location: rawTo,
+      
+      // Явні поля міст та країн
+      country_from: fromParsed.country,
+      city_from: fromParsed.city,
+      country_to: toParsed.country,
+      city_to: toParsed.city,
+
+      route: { from: rawFrom, to: rawTo },
+      location: { from: rawFrom, to: rawTo },
+      
       cargo: row.cargo || '',
       vehicle: row.vehicle || '',
       weight: row.weight || '',
@@ -48,7 +69,7 @@ export default function App() {
       contact: row.contact || '',
       phone: row.phone || '',
 
-      // Дублюємо в усі популярні ключі, щоб модалки та компоненти гарантовано бачили текст
+      // Дублюємо примітки в усі популярні ключі
       additional: extraInfo,
       notes: extraInfo,
       description: extraInfo,
@@ -56,18 +77,23 @@ export default function App() {
 
       is_archived: row.is_archived || false,
       created_at: row.created_at,
-      timeAdded: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timeAdded: row.created_at 
+        ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        : ''
     };
   };
 
   const formatToDB = (item, type, isArchived = false) => {
-    // Шукаємо текст примітки в усіх можливих ключах об'єкта item
     const extraInfo = item.additional || item.notes || item.description || item.details || item.comment || '';
+
+    // Отримуємо скомпільований рядок локації з модалки
+    const fromLoc = item.from_location || item.route?.from || item.location?.from || '';
+    const toLoc = item.to_location || item.route?.to || item.location?.to || '';
 
     return {
       type: type || item.type || 'cargo',
-      from_location: item.route?.from || item.location?.from || '',
-      to_location: item.route?.to || item.location?.to || '',
+      from_location: fromLoc,
+      to_location: toLoc,
       cargo: item.cargo || '',
       vehicle: item.vehicle || '',
       weight: item.weight || '',
@@ -78,7 +104,6 @@ export default function App() {
       contact: item.contact || '',
       phone: item.phone || '',
       
-      // Відправляємо в БД під колонкою additional
       additional: extraInfo,
       is_archived: isArchived
     };
@@ -264,7 +289,7 @@ export default function App() {
         setIsMobileOpen={setIsMobileSidebarOpen}
       />
 
-      {/* Основний контейнер контенту без примусового overflow-hidden */}
+      {/* Основний контейнер контенту */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Шапка */}
         <Header 

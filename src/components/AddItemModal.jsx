@@ -1,105 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { X, Package, Truck } from 'lucide-react';
-import { COUNTRIES, extractCountryCode } from '../data/countries';
+import { COUNTRIES } from '../data/countries';
+import { parseInitialFormData, buildSavePayload } from './addItemHelpers';
 
 export default function AddItemModal({ isOpen, onClose, onSave, initialData, type }) {
   if (!isOpen) return null;
 
   const isCargo = type === 'cargo';
-  
-  const defaultFormData = {
-    country_from: '', city_from: '',
-    country_to: '', city_to: '',
-    title: isCargo ? '' : 'Тент',
-    weight: '', price: '', currency: 'EUR',
-    date: '', phone: '', description: ''
-  };
-
-  const [formData, setFormData] = useState(defaultFormData);
-
-  // Безпечне отримання ISO-коду країни
-  const getSafeCountryCode = (countryName) => {
-    if (!countryName) return '';
-    try {
-      const code = extractCountryCode(countryName);
-      return code || countryName;
-    } catch {
-      return countryName;
-    }
-  };
+  const [formData, setFormData] = useState(() => parseInitialFormData(initialData, isCargo));
 
   useEffect(() => {
-    if (initialData) {
-      const fromFull = initialData.route?.from || initialData.location?.from || '';
-      const toFull = initialData.route?.to || initialData.location?.to || '';
-      
-      const extractCountryCity = (str) => {
-        if (!str) return { country: '', city: '' };
-        const match = str.match(/\((.*?)\)\s*(.*)/);
-        if (match) return { country: match[1], city: match[2] };
-        return { country: '', city: str };
-      };
-
-      const fromParsed = extractCountryCity(fromFull);
-      const toParsed = extractCountryCity(toFull);
-      
-      const priceParts = (initialData.price || '').split(' ');
-      const currency = priceParts.length > 1 ? priceParts.pop() : 'EUR';
-      const priceVal = priceParts.join(' ');
-
-      setFormData({
-        country_from: fromParsed.country || '',
-        city_from: fromParsed.city || '',
-        country_to: toParsed.country || '',
-        city_to: toParsed.city || '',
-        title: initialData.cargo || initialData.vehicle || (isCargo ? '' : 'Тент'),
-        weight: initialData.weight ? initialData.weight.replace(' т', '') : '',
-        price: priceVal || '',
-        currency: ['EUR', 'UAH', 'USD', 'PLN'].includes(currency) ? currency : 'EUR',
-        date: initialData.dates || initialData.date || '',
-        phone: initialData.phone || '',
-        description: initialData.description || initialData.additional || initialData.notes || ''
-      });
-    } else {
-      setFormData(defaultFormData);
-    }
+    setFormData(parseInitialFormData(initialData, isCargo));
   }, [initialData, isOpen, isCargo]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    const codeFrom = getSafeCountryCode(formData.country_from);
-    const codeTo = getSafeCountryCode(formData.country_to);
-
-    const fromStr = codeFrom 
-      ? `(${codeFrom}) ${formData.city_from}`.trim() 
-      : formData.city_from;
-      
-    const toStr = codeTo 
-      ? `(${codeTo}) ${formData.city_to}`.trim() 
-      : formData.city_to;
-      
-    const fullPrice = formData.price ? `${formData.price} ${formData.currency}` : '';
-    const formattedWeight = formData.weight ? `${formData.weight} т` : '';
-
-    const newItem = {
-      id: initialData?.id || Date.now(),
-      ...(isCargo 
-        ? { route: { from: fromStr, to: toStr }, cargo: formData.title } 
-        : { location: { from: fromStr, to: toStr }, vehicle: formData.title }),
-      weight: formattedWeight,
-      ...(isCargo ? { dates: formData.date } : { date: formData.date }),
-      price: fullPrice,
-      phone: formData.phone,
-      description: formData.description,
-      additional: formData.description,
-      timeAdded: 'Щойно'
-    };
-
+    const newItem = buildSavePayload(formData, initialData, isCargo);
     onSave(newItem);
   };
 
-  // Базові класи для всіх полів введення (без примусового w-full)
   const baseInputClasses = "px-3.5 py-2.5 bg-slate-50/80 border border-slate-200/90 rounded-xl text-[15px] sm:text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all shadow-sm";
   const inputClasses = `${baseInputClasses} w-full`;
 
