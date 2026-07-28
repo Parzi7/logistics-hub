@@ -51,6 +51,7 @@ export default function AIBotButton({ onAddParsedData }) {
   const [isTyping, setIsTyping] = useState(false);
   
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null); // Реф для авторозширення текстового поля
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,6 +60,19 @@ export default function AIBotButton({ onAddParsedData }) {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Динамічна зміна висоти поля вводу
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+
+    // Розрахунок висоти
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      // Обмежуємо максимальну висоту до 120px (далі вмикається скролл)
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  };
 
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
@@ -76,7 +90,13 @@ export default function AIBotButton({ onAddParsedData }) {
 
     const newUserMessage = { id: Date.now(), type: 'user', text: text };
     setMessages(prev => [...prev, newUserMessage]);
+    
+    // Скидаємо значення та висоту поля назад до 1 рядка
     setInputValue('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+
     setIsTyping(true);
 
     try {
@@ -141,11 +161,10 @@ export default function AIBotButton({ onAddParsedData }) {
       e.preventDefault();
       handleSendMessage(e);
     }
-    // При Shift + Enter браузер сам вставити новий рядок (\n)
+    // При Shift + Enter вставляється новий рядок (\n) і поле авторозширюється
   };
 
   const handleApprove = (parsedData, messageId) => {
-    // Збираємо додаткові деталі
     const extraParts = [];
     if (parsedData.company) extraParts.push(`Компанія: ${parsedData.company}`);
     if (parsedData.paymentTerms) extraParts.push(`Оплата: ${parsedData.paymentTerms}`);
@@ -278,16 +297,17 @@ export default function AIBotButton({ onAddParsedData }) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Поле вводу */}
+          {/* Поле вводу з авторозширенням */}
           <div className="p-3 bg-white border-t border-slate-100 shrink-0">
             <form onSubmit={handleSendMessage} className="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-1.5 pl-3 focus-within:border-indigo-500 transition-all">
               <textarea 
+                ref={textareaRef}
                 rows={1}
                 value={inputValue} 
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder="Вставте текст заявки..."
-                className="flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 resize-none max-h-28 overflow-y-auto py-1"
+                className="flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 resize-none max-h-32 overflow-y-auto py-1 leading-normal"
                 disabled={isTyping}
               />
               <button 
