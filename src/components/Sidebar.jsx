@@ -29,10 +29,10 @@ export default function Sidebar({
         />
       )}
 
-      {/* ================= 2. ОСНОВНИЙ САЙДБАР (Drawer) ================= */}
+      {/* ================= 2. ОСНОВНИЙ САЙДБАР ================= */}
       <aside 
         className={`
-          fixed md:static top-0 left-0 z-50 h-full md:min-h-screen w-72 md:w-64 
+          fixed md:sticky top-0 left-0 z-50 h-screen w-72 md:w-64 shrink-0
           bg-[#0f172a] text-slate-300 flex flex-col justify-between p-5 overflow-y-auto
           transition-transform duration-300 ease-in-out border-r border-slate-800/60
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}

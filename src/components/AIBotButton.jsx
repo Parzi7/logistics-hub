@@ -61,9 +61,9 @@ export default function AIBotButton({ onAddParsedData }) {
   }, [messages, isTyping]);
 
   const handleSendMessage = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const text = inputValue.trim();
-    if (!text) return;
+    if (!text || isTyping) return;
 
     if (!GROQ_API_KEY) {
       setMessages(prev => [...prev, {
@@ -133,6 +133,15 @@ export default function AIBotButton({ onAddParsedData }) {
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const handleKeyDown = (e) => {
+    // Натискання Enter БЕЗ Shift відправляє повідомлення
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+    // При Shift + Enter браузер сам вставити новий рядок (\n)
   };
 
   const handleApprove = (parsedData, messageId) => {
@@ -206,7 +215,7 @@ export default function AIBotButton({ onAddParsedData }) {
                 </div>
                 
                 <div className="flex flex-col gap-2 w-full">
-                  <div className={`p-3 rounded-2xl text-sm ${
+                  <div className={`p-3 rounded-2xl text-sm whitespace-pre-wrap ${
                     msg.type === 'user' 
                       ? 'bg-indigo-600 text-white rounded-tr-sm' 
                       : msg.type === 'ai-error' 
@@ -271,19 +280,20 @@ export default function AIBotButton({ onAddParsedData }) {
 
           {/* Поле вводу */}
           <div className="p-3 bg-white border-t border-slate-100 shrink-0">
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-1 pl-4 focus-within:border-indigo-500 transition-all">
-              <input 
-                type="text" 
+            <form onSubmit={handleSendMessage} className="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-1.5 pl-3 focus-within:border-indigo-500 transition-all">
+              <textarea 
+                rows={1}
                 value={inputValue} 
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Вставте текст заявки чи пропозиції авто..."
-                className="flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                onKeyDown={handleKeyDown}
+                placeholder="Вставте текст заявки..."
+                className="flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 resize-none max-h-28 overflow-y-auto py-1"
                 disabled={isTyping}
               />
               <button 
                 type="submit" 
                 disabled={!inputValue.trim() || isTyping}
-                className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl transition-colors"
+                className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl transition-colors shrink-0 mb-0.5"
               >
                 {isTyping ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               </button>

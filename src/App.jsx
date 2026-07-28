@@ -264,7 +264,8 @@ export default function App() {
         setIsMobileOpen={setIsMobileSidebarOpen}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* Основний контейнер контенту без примусового overflow-hidden */}
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Шапка */}
         <Header 
           globalSearch={globalSearch} 
@@ -272,8 +273,8 @@ export default function App() {
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
         />
 
-        {/* Контент */}
-        <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-y-auto">
+        {/* Контент сторінки */}
+        <main className="flex-1 p-3 sm:p-6 md:p-8">
           <SubTabNavigation 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
