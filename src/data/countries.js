@@ -17,37 +17,3 @@ export const COUNTRIES = [
   "UA - Україна", "FI - Фінляндія", "FR - Франція", "HR - Хорватія", "ME - Чорногорія", 
   "CZ - Чехія", "CH - Швейцарія", "SE - Швеція", "ZA - ПАР", "JP - Японія"
 ];
-
-// ДОДАНО EXPORT ОСЬ ТУТ 👇
-export const extractCountryCode = (str) => {
-  if (!str) return '';
-  const match = str.match(/([A-Za-z]{2})/);
-  return match ? match[1].toUpperCase() : str.trim().toUpperCase();
-};
-
-export function filterItems(items = [], { query = '', fromCountry = '', toCountry = '' }, globalSearch = '') {
-  if (!Array.isArray(items)) return [];
-
-  return items.filter(item => {
-    const textTerm = (query || globalSearch).toLowerCase().trim();
-    const itemName = (item?.cargo || item?.vehicle || '').toLowerCase();
-    const routeFrom = (item?.route?.from || item?.location?.from || '').toLowerCase();
-    const routeTo = (item?.route?.to || item?.location?.to || '').toLowerCase();
-
-    // 1. Пошук по тексту (назва вантажу/міста)
-    const matchesText = !textTerm || 
-      itemName.includes(textTerm) || 
-      routeFrom.includes(textTerm) || 
-      routeTo.includes(textTerm);
-
-    // 2. Коди країн з випадаючих списків
-    const codeFrom = extractCountryCode(fromCountry).toLowerCase();
-    const codeTo = extractCountryCode(toCountry).toLowerCase();
-
-    // 3. Перевірка наявності коду у дужках типу "(cz)" або у тексті
-    const matchesFromCountry = !codeFrom || routeFrom.includes(`(${codeFrom})`) || routeFrom.includes(codeFrom);
-    const matchesToCountry = !codeTo || routeTo.includes(`(${codeTo})`) || routeTo.includes(codeTo);
-
-    return matchesText && matchesFromCountry && matchesToCountry;
-  });
-}

@@ -1,4 +1,4 @@
-import { COUNTRIES, extractCountryCode } from '../data/countries';
+import { extractCountryCode } from '../utils/filterUtils';
 
 /**
  * Безпечне отримання ISO-коду країни
@@ -50,13 +50,13 @@ export const extractCountryCity = (data, isFrom = true) => {
   }
 
   // Формат "UA, Київ" або "UA - Київ"
-  const prefixMatch = str.match(/^([A-Za-z]{2})[\s,–\/-]+(.+)$/);
+  const prefixMatch = str.match(/^([A-Za-z]{2})[\s,–/-]+(.+)$/);
   if (prefixMatch) {
     return { country: prefixMatch[1].trim(), city: prefixMatch[2].trim() };
   }
 
   // Формат "Київ, UA"
-  const suffixMatch = str.match(/^(.+?)[\s,–\/-]+([A-Za-z]{2})$/);
+  const suffixMatch = str.match(/^(.+?)[\s,–/-]+([A-Za-z]{2})$/);
   if (suffixMatch) {
     return { country: suffixMatch[2].trim(), city: suffixMatch[1].trim() };
   }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { 
   X, MapPin, Flag, Package, Truck, 
   Calendar, Banknote, Weight, Phone, FileText, ArrowRight, ArrowDown 

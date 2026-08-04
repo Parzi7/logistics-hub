@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Globe, X, ChevronDown } from 'lucide-react';
 import { COUNTRIES } from '../data/countries';
 

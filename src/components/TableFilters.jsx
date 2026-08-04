@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, MapPin, X, RotateCcw } from 'lucide-react';
 // Підключаємо ваш список країн
 import { COUNTRIES } from '../data/countries'; 

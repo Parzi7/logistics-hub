@@ -1,26 +1,47 @@
-export function filterItems(items = [], { query = '', fromCountry = '', toCountry = '' }, globalSearch = '') {
-  return items.filter(item => {
-    // 1. Пошук по текст-запиту (назва, міста)
-    const textTerm = (query || globalSearch).toLowerCase().trim();
-    const itemName = (item.cargo || item.vehicle || '').toLowerCase();
-    const routeFrom = (item.route?.from || item.location?.from || '').toLowerCase();
-    const routeTo = (item.route?.to || item.location?.to || '').toLowerCase();
+const normalize = (value) => String(value || '').trim().toLowerCase();
 
-    const matchesText = !textTerm || 
-      itemName.includes(textTerm) || 
-      routeFrom.includes(textTerm) || 
-      routeTo.includes(textTerm);
+export const extractCountryCode = (str) => {
+  if (!str) return '';
+  const match = String(str).match(/([A-Za-z]{2})/);
+  return match ? match[1].toUpperCase() : String(str).trim().toUpperCase();
+};
 
-    // 2. Фільтр за країною виїзду
-    const matchesFromCountry = !fromCountry || 
-      routeFrom.includes(`(${fromCountry.toLowerCase()})`) || 
-      routeFrom.includes(fromCountry.toLowerCase());
+export const filterItems = (
+  items = [],
+  { query = '', fromCountry = '', toCountry = '' } = {},
+  globalSearch = ''
+) => {
+  if (!Array.isArray(items)) return [];
 
-    // 3. Фільтр за країною призначення
-    const matchesToCountry = !toCountry || 
-      routeTo.includes(`(${toCountry.toLowerCase()})`) || 
-      routeTo.includes(toCountry.toLowerCase());
+  const searchTerm = normalize(query || globalSearch);
+  const codeFrom = extractCountryCode(fromCountry).toLowerCase();
+  const codeTo = extractCountryCode(toCountry).toLowerCase();
+
+  return items.filter((item) => {
+    const itemName = normalize(item?.cargo || item?.vehicle || '');
+    const routeFrom = normalize(item?.route?.from || item?.location?.from || '');
+    const routeTo = normalize(item?.route?.to || item?.location?.to || '');
+    const price = normalize(item?.price || '');
+    const extra = normalize(item?.additional || item?.notes || item?.description || item?.details || '');
+
+    const matchesText =
+      !searchTerm ||
+      itemName.includes(searchTerm) ||
+      routeFrom.includes(searchTerm) ||
+      routeTo.includes(searchTerm) ||
+      price.includes(searchTerm) ||
+      extra.includes(searchTerm);
+
+    const matchesFromCountry =
+      !codeFrom ||
+      routeFrom.includes(`(${codeFrom})`) ||
+      routeFrom.includes(codeFrom);
+
+    const matchesToCountry =
+      !codeTo ||
+      routeTo.includes(`(${codeTo})`) ||
+      routeTo.includes(codeTo);
 
     return matchesText && matchesFromCountry && matchesToCountry;
   });
-}
+};

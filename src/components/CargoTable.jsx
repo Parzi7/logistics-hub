@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Package, Calendar, Trash2, Plus, Edit2, RotateCcw, Archive, Search, Globe, Clock } from 'lucide-react';
-// Обов'язково імпортуємо extractCountryCode
-import { COUNTRIES, extractCountryCode } from '../data/countries';
+import { COUNTRIES } from '../data/countries';
+import { filterItems } from '../utils/filterUtils';
 
 export default function CargoTable({ 
   cargos = [], 
@@ -16,27 +16,10 @@ export default function CargoTable({
   const [searchFrom, setSearchFrom] = useState('');
   const [searchTo, setSearchTo] = useState('');
 
-  // РОЗУМНА ФІЛЬТРАЦІЯ
-  const filteredCargos = cargos.filter(item => {
-    const fromStr = item.route?.from || item.location?.from || '';
-    const toStr = item.route?.to || item.location?.to || '';
-    const title = item.cargo || item.vehicle || '';
-
-    // 1. Загальний пошук (назва, місто)
-    const matchGeneral = !searchGeneral || 
-      title.toLowerCase().includes(searchGeneral.toLowerCase()) || 
-      fromStr.toLowerCase().includes(searchGeneral.toLowerCase()) ||
-      toStr.toLowerCase().includes(searchGeneral.toLowerCase());
-
-    // 2. Витягуємо лише код (наприклад "UA") з того, що вибрав користувач у випадаючому списку
-    const codeFrom = extractCountryCode(searchFrom).toLowerCase();
-    const codeTo = extractCountryCode(searchTo).toLowerCase();
-
-    // 3. Шукаємо цей код у рядку маршруту
-    const matchFrom = !codeFrom || fromStr.toLowerCase().includes(`(${codeFrom})`) || fromStr.toLowerCase().includes(codeFrom);
-    const matchTo = !codeTo || toStr.toLowerCase().includes(`(${codeTo})`) || toStr.toLowerCase().includes(codeTo);
-
-    return matchGeneral && matchFrom && matchTo;
+  const filteredCargos = filterItems(cargos, {
+    query: searchGeneral,
+    fromCountry: searchFrom,
+    toCountry: searchTo,
   });
 
   const formatLocation = (locStr) => {

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Sparkles, User, Loader2, CheckCircle2, AlertCircle, Truck, Package, Phone } from 'lucide-react';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;

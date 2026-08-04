@@ -1,4 +1,3 @@
-import React from 'react';
 import { Package, Truck } from 'lucide-react';
 
 export default function SubTabNavigation({ 

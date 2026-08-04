@@ -1,9 +1,6 @@
-import React from 'react';
 import { Truck, Archive, BarChart2, Layers, X, Sparkles } from 'lucide-react';
 
 export default function Sidebar({ 
-  activeTab, 
-  setActiveTab, 
   isArchiveView, 
   setIsArchiveView,
   isMobileOpen,

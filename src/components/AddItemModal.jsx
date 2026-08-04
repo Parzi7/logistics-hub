@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Package, Truck } from 'lucide-react';
 import { COUNTRIES } from '../data/countries';
 import { parseInitialFormData, buildSavePayload } from './addItemHelpers';
 
 export default function AddItemModal({ isOpen, onClose, onSave, initialData, type }) {
-  if (!isOpen) return null;
-
   const isCargo = type === 'cargo';
   const [formData, setFormData] = useState(() => parseInitialFormData(initialData, isCargo));
 
-  useEffect(() => {
-    setFormData(parseInitialFormData(initialData, isCargo));
-  }, [initialData, isOpen, isCargo]);
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './lib/supabase';
 import CargoTable from './components/CargoTable';
 import TransportTable from './components/TransportTable';
@@ -11,6 +11,71 @@ import AIBotButton from './components/AIBotButton';
 
 // Імпортуємо парсер для точного розбору міст та країн
 import { extractCountryCity } from './components/addItemHelpers';
+import { filterItems } from './utils/filterUtils';
+
+const formatFromDB = (row) => {
+  const extraInfo = row.additional || row.notes || row.description || row.details || row.comment || '';
+  const fromParsed = extractCountryCity({ from_location: row.from_location }, true);
+  const toParsed = extractCountryCity({ to_location: row.to_location }, false);
+
+  const rawFrom = row.from_location || '';
+  const rawTo = row.to_location || '';
+
+  return {
+    id: row.id,
+    type: row.type,
+    from_location: rawFrom,
+    to_location: rawTo,
+    country_from: fromParsed.country,
+    city_from: fromParsed.city,
+    country_to: toParsed.country,
+    city_to: toParsed.city,
+    route: { from: rawFrom, to: rawTo },
+    location: { from: rawFrom, to: rawTo },
+    cargo: row.cargo || '',
+    vehicle: row.vehicle || '',
+    weight: row.weight || '',
+    volume: row.volume || '',
+    dates: row.dates || '',
+    date: row.dates || '',
+    price: row.price || '',
+    company: row.company || '',
+    contact: row.contact || '',
+    phone: row.phone || '',
+    additional: extraInfo,
+    notes: extraInfo,
+    description: extraInfo,
+    details: extraInfo,
+    is_archived: row.is_archived || false,
+    created_at: row.created_at,
+    timeAdded: row.created_at
+      ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : ''
+  };
+};
+
+const formatToDB = (item, type, isArchived = false) => {
+  const extraInfo = item.additional || item.notes || item.description || item.details || item.comment || '';
+  const fromLoc = item.from_location || item.route?.from || item.location?.from || '';
+  const toLoc = item.to_location || item.route?.to || item.location?.to || '';
+
+  return {
+    type: type || item.type || 'cargo',
+    from_location: fromLoc,
+    to_location: toLoc,
+    cargo: item.cargo || '',
+    vehicle: item.vehicle || '',
+    weight: item.weight || '',
+    volume: item.volume || '',
+    dates: item.dates || item.date || '',
+    price: item.price || '',
+    company: item.company || '',
+    contact: item.contact || '',
+    phone: item.phone || '',
+    additional: extraInfo,
+    is_archived: isArchived
+  };
+};
 
 export default function App() {
   const [selectedDetails, setSelectedDetails] = useState(null);
@@ -30,87 +95,9 @@ export default function App() {
   const [archivedCargos, setArchivedCargos] = useState([]);
   const [archivedTransports, setArchivedTransports] = useState([]);
 
-  // --- ХЕЛПЕРИ ДЛЯ КОНВЕРТАЦІЇ ДАНИХ (БД <-> ФРОНТЕНД) ---
-  const formatFromDB = (row) => {
-    const extraInfo = row.additional || row.notes || row.description || row.details || row.comment || '';
-
-    // Заранее розбираємо країни та міста для 100% точності
-    const fromParsed = extractCountryCity({ from_location: row.from_location }, true);
-    const toParsed = extractCountryCity({ to_location: row.to_location }, false);
-
-    const rawFrom = row.from_location || '';
-    const rawTo = row.to_location || '';
-
-    return {
-      id: row.id,
-      type: row.type,
-      
-      // Сирі значення без примусового тире '—' (щоб не псувати редагування)
-      from_location: rawFrom,
-      to_location: rawTo,
-      
-      // Явні поля міст та країн
-      country_from: fromParsed.country,
-      city_from: fromParsed.city,
-      country_to: toParsed.country,
-      city_to: toParsed.city,
-
-      route: { from: rawFrom, to: rawTo },
-      location: { from: rawFrom, to: rawTo },
-      
-      cargo: row.cargo || '',
-      vehicle: row.vehicle || '',
-      weight: row.weight || '',
-      volume: row.volume || '',
-      dates: row.dates || '',
-      date: row.dates || '',
-      price: row.price || '',
-      company: row.company || '',
-      contact: row.contact || '',
-      phone: row.phone || '',
-
-      // Дублюємо примітки в усі популярні ключі
-      additional: extraInfo,
-      notes: extraInfo,
-      description: extraInfo,
-      details: extraInfo,
-
-      is_archived: row.is_archived || false,
-      created_at: row.created_at,
-      timeAdded: row.created_at 
-        ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-        : ''
-    };
-  };
-
-  const formatToDB = (item, type, isArchived = false) => {
-    const extraInfo = item.additional || item.notes || item.description || item.details || item.comment || '';
-
-    // Отримуємо скомпільований рядок локації з модалки
-    const fromLoc = item.from_location || item.route?.from || item.location?.from || '';
-    const toLoc = item.to_location || item.route?.to || item.location?.to || '';
-
-    return {
-      type: type || item.type || 'cargo',
-      from_location: fromLoc,
-      to_location: toLoc,
-      cargo: item.cargo || '',
-      vehicle: item.vehicle || '',
-      weight: item.weight || '',
-      volume: item.volume || '',
-      dates: item.dates || item.date || '',
-      price: item.price || '',
-      company: item.company || '',
-      contact: item.contact || '',
-      phone: item.phone || '',
-      
-      additional: extraInfo,
-      is_archived: isArchived
-    };
-  };
 
   // --- 1. ЗАВАНТАЖЕННЯ ДАНИХ З SUPABASE ПРИ СТАРТІ ---
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('logistics')
@@ -128,25 +115,17 @@ export default function App() {
       setArchivedTransports(formatted.filter(i => i.type === 'transport' && i.is_archived));
     }
     setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchAllData();
   }, []);
 
+  useEffect(() => {
+    const loadInitialData = async () => {
+      await fetchAllData();
+    };
+    loadInitialData();
+  }, [fetchAllData]);
+
   // Фільтрація пошуку
-  const filterList = (list) => {
-    if (!globalSearch.trim()) return list;
-    const q = globalSearch.toLowerCase();
-    return list.filter(item => {
-      const from = (item.route?.from || item.location?.from || '').toLowerCase();
-      const to = (item.route?.to || item.location?.to || '').toLowerCase();
-      const title = (item.cargo || item.vehicle || '').toLowerCase();
-      const price = (item.price || '').toLowerCase();
-      const extra = (item.additional || item.notes || '').toLowerCase();
-      return from.includes(q) || to.includes(q) || title.includes(q) || price.includes(q) || extra.includes(q);
-    });
-  };
+  const filterList = (list) => filterItems(list, {}, globalSearch);
 
   const handleOpenDetails = (item, type) => {
     setSelectedDetails({ item, type });
@@ -171,7 +150,8 @@ export default function App() {
   const handleSaveItem = async (newItemData) => {
     const isEditing = Boolean(editingItem);
     const targetType = isEditing ? editingItem.type : activeTab;
-    const dbPayload = formatToDB(newItemData, targetType, isArchiveView);
+    const isArchived = isEditing ? editingItem.item?.is_archived : false;
+    const dbPayload = formatToDB(newItemData, targetType, isArchived);
 
     if (isEditing) {
       const { error } = await supabase
@@ -185,19 +165,14 @@ export default function App() {
         return;
       }
     } else {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('logistics')
-        .insert([dbPayload])
-        .select();
+        .insert([dbPayload]);
 
       if (error) {
         console.error('Помилка додавання у БД:', error);
         alert('Помилка при додаванні запису');
         return;
-      }
-
-      if (data && data[0]) {
-        newItemData = formatFromDB(data[0]);
       }
     }
 
@@ -344,6 +319,7 @@ export default function App() {
 
       {isAddModalOpen && (
         <AddItemModal 
+          key={editingItem ? `edit-${editingItem.item?.id || 'new'}` : `new-${activeTab}`}
           isOpen={isAddModalOpen}
           onClose={() => {
             setIsAddModalOpen(false);
