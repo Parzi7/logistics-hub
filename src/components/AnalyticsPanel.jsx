@@ -1,26 +1,7 @@
-import { Package, Truck, Archive, CalendarDays, MapPinned, DollarSign } from 'lucide-react';
+import { useState } from 'react';
+import { Package, Truck, Archive, CalendarDays, MapPinned } from 'lucide-react';
 import { extractCountryCity } from './addItemHelpers';
 
-const parsePriceValue = (value) => {
-  if (!value || value === '-' || value === 'За домовленістю') return null;
-
-  const normalized = String(value)
-    .replace(/[^0-9,.-]/g, '')
-    .replace(/,/g, '.');
-
-  if (!normalized) return null;
-
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const getPriceRange = (value) => {
-  if (value === null) return 'Без ціни';
-  if (value < 50000) return '< 50k';
-  if (value < 100000) return '50k-100k';
-  if (value < 200000) return '100k-200k';
-  return '200k+';
-};
 
 const formatDate = (value) => {
   if (!value) return null;
@@ -39,7 +20,9 @@ export default function AnalyticsPanel({
   cargos = [],
   transports = [],
   archivedCargos = [],
-  archivedTransports = []
+  archivedTransports = [],
+  openDetails,
+  openCountryPage
 }) {
   const allCargos = [...cargos, ...archivedCargos];
   const allTransports = [...transports, ...archivedTransports];
@@ -76,16 +59,7 @@ export default function AnalyticsPanel({
     return acc;
   }, {});
 
-  const transportPriceStats = allTransports.reduce((acc, item) => {
-    const priceValue = parsePriceValue(item.price);
-    const range = getPriceRange(priceValue);
-
-    if (range) {
-      acc[range] = (acc[range] || 0) + 1;
-    }
-
-    return acc;
-  }, {});
+  
 
   const statCards = [
     {
@@ -152,7 +126,13 @@ export default function AnalyticsPanel({
           {addedToday.length > 0 ? (
             <div className="space-y-2">
               {addedToday.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div
+                  key={item.id}
+                  onClick={() => openDetails && openDetails(item, 'cargo')}
+                  role="button"
+                  tabIndex={0}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3 cursor-pointer hover:shadow-md transition-all"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="font-semibold text-slate-800">{item.cargo || 'Без назви'}</div>
@@ -188,7 +168,13 @@ export default function AnalyticsPanel({
                 {Object.entries(transportCountryStats)
                   .sort((a, b) => b[1] - a[1])
                   .map(([country, count]) => (
-                    <div key={country} className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-sm">
+                    <div
+                      key={country}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openCountryPage && openCountryPage(country)}
+                      className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-sm cursor-pointer hover:shadow-sm transition-all"
+                    >
                       <span className="font-medium text-slate-700">{country}</span>
                       <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
                         {count}
@@ -203,31 +189,7 @@ export default function AnalyticsPanel({
             )}
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <DollarSign size={18} className="text-emerald-500" />
-              <h3 className="text-lg font-bold text-slate-800">Цінові діапазони</h3>
-            </div>
-
-            {Object.keys(transportPriceStats).length > 0 ? (
-              <div className="space-y-2">
-                {Object.entries(transportPriceStats)
-                  .sort((a, b) => a[0].localeCompare(b[0]))
-                  .map(([range, count]) => (
-                    <div key={range} className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-sm">
-                      <span className="font-medium text-slate-700">{range}</span>
-                      <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                        {count}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
-                Немає даних для аналізу цін.
-              </div>
-            )}
-          </div>
+          {/* Removed price ranges panel as requested */}
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import SubTabNavigation from './components/SubTabNavigation';
 import AIBotButton from './components/AIBotButton';
 import AnalyticsPanel from './components/AnalyticsPanel';
+import CountryTransportsPage from './components/CountryTransportsPage';
 
 // Імпортуємо парсер для точного розбору міст та країн
 import { extractCountryCity } from './components/addItemHelpers';
@@ -96,6 +97,7 @@ export default function App() {
   const [transports, setTransports] = useState([]);
   const [archivedCargos, setArchivedCargos] = useState([]);
   const [archivedTransports, setArchivedTransports] = useState([]);
+  const [countryPage, setCountryPage] = useState(null);
 
 
   // --- 1. ЗАВАНТАЖЕННЯ ДАНИХ З SUPABASE ПРИ СТАРТІ ---
@@ -132,6 +134,12 @@ export default function App() {
   const handleOpenDetails = (item, type) => {
     setSelectedDetails({ item, type });
   };
+
+  const openCountryPage = (country) => {
+    setCountryPage(country);
+  };
+
+  const closeCountryPage = () => setCountryPage(null);
 
   const handleCloseDetails = () => {
     setSelectedDetails(null);
@@ -292,12 +300,23 @@ export default function App() {
               <span className="ml-3 text-slate-500 font-medium">Синхронізація з Supabase...</span>
             </div>
           ) : showAnalytics ? (
-            <AnalyticsPanel
-              cargos={cargos}
-              transports={transports}
-              archivedCargos={archivedCargos}
-              archivedTransports={archivedTransports}
-            />
+            countryPage ? (
+              <CountryTransportsPage
+                country={countryPage}
+                transports={[...transports, ...archivedTransports]}
+                onBack={closeCountryPage}
+                openDetails={handleOpenDetails}
+              />
+            ) : (
+              <AnalyticsPanel
+                cargos={cargos}
+                transports={transports}
+                archivedCargos={archivedCargos}
+                archivedTransports={archivedTransports}
+                openDetails={handleOpenDetails}
+                openCountryPage={openCountryPage}
+              />
+            )
           ) : activeTab === 'cargo' ? (
             <CargoTable 
               cargos={filterList(isArchiveView ? archivedCargos : cargos)} 
