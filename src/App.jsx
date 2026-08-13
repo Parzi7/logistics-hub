@@ -8,6 +8,7 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import SubTabNavigation from './components/SubTabNavigation';
 import AIBotButton from './components/AIBotButton';
+import AnalyticsPanel from './components/AnalyticsPanel';
 
 // Імпортуємо парсер для точного розбору міст та країн
 import { extractCountryCity } from './components/addItemHelpers';
@@ -84,6 +85,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState('cargo'); 
   const [isArchiveView, setIsArchiveView] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -260,6 +262,8 @@ export default function App() {
         setActiveTab={setActiveTab} 
         isArchiveView={isArchiveView}
         setIsArchiveView={setIsArchiveView}
+        showAnalytics={showAnalytics}
+        setShowAnalytics={setShowAnalytics}
         isMobileOpen={isMobileSidebarOpen}
         setIsMobileOpen={setIsMobileSidebarOpen}
       />
@@ -275,16 +279,25 @@ export default function App() {
 
         {/* Контент сторінки */}
         <main className="flex-1 p-3 sm:p-6 md:p-8">
-          <SubTabNavigation 
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+          {!showAnalytics && (
+            <SubTabNavigation 
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          )}
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
               <span className="ml-3 text-slate-500 font-medium">Синхронізація з Supabase...</span>
             </div>
+          ) : showAnalytics ? (
+            <AnalyticsPanel
+              cargos={cargos}
+              transports={transports}
+              archivedCargos={archivedCargos}
+              archivedTransports={archivedTransports}
+            />
           ) : activeTab === 'cargo' ? (
             <CargoTable 
               cargos={filterList(isArchiveView ? archivedCargos : cargos)} 
